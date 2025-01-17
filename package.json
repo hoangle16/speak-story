@@ -1,0 +1,29 @@
+{
+  "name": "speak-story",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev src/app.ts",
+    "build": "tsc",
+    "build:css": "tailwindcss -i ./src/styles/tailwind.css -o ./public/css/style.css --watch",
+    "start": "node dist/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
+  }
+}
