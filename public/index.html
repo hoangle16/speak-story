@@ -6,8 +6,161 @@
     <title>Speak Story</title>
     <link rel="stylesheet" href="./css/style.css" />
   </head>
-  <body class="bg-gray-100 text-center p-5">
-    <h1 class="text-4xl font-bold text-blue-600">Speak Story</h1>
+  <body class="min-h-screen">
+    <div class="min-h-screen flex flex-col bg-gray-100">
+      <header class="bg-white shadow-lg mb-4">
+        <nav class="flex justify-between items-center mx-auto px-4 py-2 gap-2">
+          <a href="/" class="text-2xl font-bold text-blue-500">Speak Story</a>
+          <ul class="flex items-center gap-8">
+            <li>
+              <a
+                class="text-lg text-gray-700 font-semibold hover:text-gray-900"
+                href="#"
+                >Home</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-lg text-gray-700 font-semibold hover:text-gray-900"
+                href="#"
+                >About</a
+              >
+            </li>
+            <li>
+              <a
+                class="text-lg text-gray-700 font-semibold hover:text-gray-900"
+                href="#"
+                >Contact</a
+              >
+            </li>
+          </ul>
+          <button
+            class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md"
+          >
+            Sign Up
+          </button>
+        </nav>
+      </header>
+      <main class="flex-1">
+        <section class="flex justify-center items-center h-full">
+          <div class="rounded-lg shadow-lg border border-gray-200 p-4 sm:p-6 lg:p-8 bg-white mt-16">
+            <form id="conversionForm" class="space-y-6">
+              <div>
+                <label
+                  for="chapterUrl"
+                  class="block text-sm font-medium leading-6 text-gray-900"
+                  >URL Chương truyện:</label
+                >
+                <div class="mt-2">
+                  <input
+                    type="text"
+                    id="chapterUrl"
+                    name="chapterUrl"
+                    placeholder="Nhập link chương truyện cần chuyển đổi thành audio"
+                    class="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  />
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                  Hỗ trợ các nguồn: truyenyy,...
+                </p>
+              </div>
+    
+              <div class="sm:grid sm:grid-cols-3 sm:gap-4">
+                <div>
+                  <label
+                    for="rate"
+                    class="block text-sm font-medium leading-6 text-gray-900"
+                    >Tốc độ đọc:</label
+                  >
+                  <div class="mt-2">
+                    <input
+                      type="number"
+                      id="rate"
+                      name="rate"
+                      step="0.1"
+                      min="0.5"
+                      max="2"
+                      value="1.3"
+                      class="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                </div>
+  
+                <div>
+                  <label
+                    for="voice"
+                    class="block text-sm font-medium leading-6 text-gray-900"
+                    >Chọn giọng đọc:</label
+                  >
+                  <div class="mt-2">
+                    <select
+                      id="voice"
+                      name="voiceShortName"
+                      class="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    ></select>
+                  </div>
+                </div>
+  
+                <div>
+                  <label
+                    for="timer"
+                    class="block text-sm font-medium leading-6 text-gray-900"
+                    >Hẹn giờ dừng phát (phút):</label
+                  >
+                  <div class="mt-2">
+                    <input
+                      type="number"
+                      id="timer"
+                      name="timer"
+                      min="1"
+                      class="block w-full rounded-md border-0 px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                </div>
+              </div>
+  
+              <div>
+                <button
+                  type="submit"
+                  class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                >
+                  Chuyển đổi
+                </button>
+              </div>
+            </form>
+
+            <div id="audioControls" class="mt-6">
+              <audio id="audioPlayer" controls class="w-full"></audio>
+            </div>
+
+            <div id="chapterNavigation"></div> 
+            <div id="result" class="mt-6 text-sm text-gray-600"></div>
+            <div id="error" class="mt-6 text-sm text-red-600"></div>
+            <div
+              id="timerDisplay"
+              class="text-center mt-6 text-xl font-semibold text-indigo-600"
+            ></div>
+          </div>
+        </section>
+      </main>
+      <footer class="bg-white shadow-lg border-t">
+        <div class="flex justify-between items-center mx-auto px-4 py-2 gap-2 text-gray-700">
+          <p>&copy; 2025 Speak Story. All rights reserved.</p>
+          <ul class="flex items-center gap-4">
+            <li>
+              <a href="#" class="text-sm font-semibold hover:text-gray-900">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" class="text-sm font-semibold hover:text-gray-900">
+                Terms & Conditions
+              </a>
+            </li>
+          </ul>
+    
+      </footer>
+    </div>
     <script src="./js//app.js"></script>
   </body>
 </html>
