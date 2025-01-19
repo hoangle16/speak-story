@@ -112,10 +112,27 @@ const createTruyenComScraper = (): ScraperConfig => ({
   },
 });
 
+const createBNSachScraper = (): ScraperConfig => ({
+  domain: "bnsach.com",
+  selectors: {
+    content: "#noi-dung",
+    title: "#chuong-title",
+    nextChapter: {
+      cheerio: "a.page-next.chuong-button",
+      puppeteer: "a.page-next.chuong-button",
+    },
+    prevChapter: {
+      cheerio: "a.page-prev.chuong-button",
+      puppeteer: "a.page-prev.chuong-button",
+    },
+  },
+});
+
 // Scraper map
 const scrapers: Record<string, () => ScraperConfig> = {
   "truyenyy.vip": createTruyenYYScraper,
   "truyencom.com": createTruyenComScraper,
+  "bnsach.com": createBNSachScraper,
 };
 
 // Main scraping functions
@@ -130,16 +147,33 @@ const scrapeWithPuppeteer = async (
 
   try {
     const page = await browser.newPage();
+
+    await page.setRequestInterception(true);
+    // Block some script
+    page.on("request", (request) => {
+      const url = request.url();
+      if (
+        request.resourceType() === "script" &&
+        url.includes("content-protector")
+      ) {
+        request.abort();
+      } else {
+        request.continue();
+      }
+    });
+
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
     );
 
     await page.goto(url, { waitUntil: "networkidle2" });
-
     const content = await getElementTextWithPuppeteer(
       page,
       config.selectors.content
     );
+    if (content?.length <= 0) {
+      throw new Error("Couldn't extract content");
+    }
     const title = await getElementTextWithPuppeteer(
       page,
       config.selectors.title
@@ -154,7 +188,7 @@ const scrapeWithPuppeteer = async (
     );
 
     return {
-      content,
+      content: content + "\n" + ".Cách chương",
       currentChapter: { url, title },
       nextChapter: {
         url: formatUrl(nextChapter.url, config.domain),
@@ -178,6 +212,9 @@ const scrapeWithCheerio = async (
   const $ = cheerio.load(html);
 
   const content = extractText($, config.selectors.content);
+  if (content.length <= 0) {
+    throw new Error("Couldn't extract content");
+  }
   const title = extractText($, config.selectors.title);
   const nextChapter = extractChapterInfo(
     $,
@@ -189,7 +226,7 @@ const scrapeWithCheerio = async (
   );
 
   return {
-    content,
+    content: content + "\n" + ".Cách chương",
     currentChapter: { url, title },
     nextChapter: {
       url: formatUrl(nextChapter.url, config.domain),
@@ -226,9 +263,12 @@ export const getStoryContent = async (url: string): Promise<StoryContent> => {
       },
     });
     console.log("get content with axios and cheerio");
-    return scrapeWithCheerio(url, config, data);
+    return await scrapeWithCheerio(url, config, data);
   } catch (err) {
-    if (axios.isAxiosError(err) && err.response?.status === 403) {
+    if (
+      (axios.isAxiosError(err) && err.response?.status === 403) ||
+      (err instanceof Error && err.message === "Couldn't extract content")
+    ) {
       console.log("get content with puppeteer");
       return scrapeWithPuppeteer(url, config);
     }

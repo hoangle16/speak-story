@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as ttsService from "../services/tts.service";
 import * as storyService from "../services/story.service";
-import { RATE } from "edge-tts-node";
+import { PITCH, RATE } from "edge-tts-node";
 
 export const getVoices = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -24,14 +24,17 @@ export const convertTextToSpeech = async (
     chapterUrl,
     voiceShortName,
     rate,
-  }: { chapterUrl: string; voiceShortName?: string; rate?: number | RATE } =
-    req.body;
+    pitch,
+  }: {
+    chapterUrl: string;
+    voiceShortName?: string;
+    rate?: number | RATE;
+    pitch?: string | PITCH;
+  } = req.body;
 
   try {
     res.setHeader("Content-Type", "audio/mp3");
     res.setHeader("Transfer-Encoding", "chunked");
-
-    console.log("ttsOptions", chapterUrl, voiceShortName, rate);
     const { content, currentChapter, nextChapter, prevChapter } =
       await storyService.getStoryContent(chapterUrl);
 
@@ -47,12 +50,13 @@ export const convertTextToSpeech = async (
     res.setHeader("X-Next-Chapter", encodedChapters.next);
     res.setHeader("X-Prev-Chapter", encodedChapters.prev);
 
-    console.log("content", content.substring(0, 100));
+    console.log("content: ", content.substring(0, 100));
 
     const audioStream = await ttsService.getTTSStream({
       text: content,
       voiceShortName,
       rate,
+      pitch,
     });
 
     audioStream.pipe(res);
