@@ -4,7 +4,11 @@ export const createNavigationUI = (
   currentChapter,
   prevChapter,
   nextChapterData
-) => `
+) => {
+  document.title = currentChapter.title
+    ? `${currentChapter.title} - Speak Story`
+    : "Speak Story";
+  return `
   <div class="flex flex-col items-center space-y-4 my-6 p-4 rounded-lg bg-gray-50 dark:bg-gray-800 transition-colors duration-200">
     <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200">
       ${currentChapter.title || "Current Chapter"}
@@ -15,6 +19,7 @@ export const createNavigationUI = (
     </div>
   </div>
 `;
+};
 
 const createPrevButton = (prevChapter) => {
   if (isValidUrl(prevChapter?.url)) {

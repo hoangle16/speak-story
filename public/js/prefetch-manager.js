@@ -7,15 +7,16 @@ export class PrefetchManager {
     this.isPrefetching = false;
     this.prefetchedResponse = null;
     this.prefetchReader = null;
+    this.stopPrefetching = false;
   }
 
   async startPrefetch() {
     if (this.isPrefetching) return;
-    console.log("startPrefetch");
     const nextChapter = this.chapterNavigator.getNextChapter();
     if (!nextChapter?.url) return;
 
     this.isPrefetching = true;
+    this.stopPrefetching = false;
     this.prefetchController = new AbortController();
     this.prefetchedChunks = [];
 
@@ -47,15 +48,12 @@ export class PrefetchManager {
   }
 
   async continuePrefetching() {
-    console.log("continuePrefetching called");
     try {
-      while (true) {
+      while (!this.stopPrefetching) {
         const { done, value } = await this.prefetchReader.read();
         if (done) break;
         this.prefetchedChunks.push(value);
       }
-      console.log("continuePrefetching done");
-      this.prefetchReader = null;
     } catch (err) {
       if (err.name !== "AbortError") {
         console.error("Error while continuing prefetch:", err);
@@ -64,7 +62,7 @@ export class PrefetchManager {
   }
 
   resetPrefetch() {
-    console.log("resetPrefetch called");
+    this.stopPrefetching = true;
     if (this.prefetchController) {
       this.prefetchController.abort();
       this.prefetchController = null;
@@ -75,12 +73,18 @@ export class PrefetchManager {
     this.prefetchedResponse = null;
   }
 
+  transferReaderControl() {
+    this.stopPrefetching = true;
+    const reader = this.prefetchReader;
+    this.prefetchReader = null;
+    return reader;
+  }
+
   getPrefetchedData() {
-    console.log("getPrefetchedData called");
     return {
       chunks: [...this.prefetchedChunks],
       response: this.prefetchedResponse,
-      reader: this.prefetchReader,
+      reader: this.prefetchReader ? this.transferReaderControl() : null,
     };
   }
 }

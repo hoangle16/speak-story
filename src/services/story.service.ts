@@ -84,7 +84,7 @@ const createTruyenYYScraper = (): ScraperConfig => ({
   domain: "truyenyy.vip",
   selectors: {
     content: "#inner_chap_content_1",
-    title: "h2.heading-font",
+    title: "h1.chap-title",
     nextChapter: {
       cheerio: "a.weui-btn_primary:contains('Tiếp')",
       puppeteer: "a.weui-btn_primary",

@@ -140,16 +140,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   audioPlayer.addEventListener("timeupdate", () => {
     if (
       audioHandler.isAudioLoaded &&
-      audioPlayer.duration - audioPlayer.currentTime <= 30 &&
+      audioPlayer.duration - audioPlayer.currentTime <= 45 &&
       !prefetchManager.isPrefetching
     ) {
-      console.log(
-        `isLoaded ${audioHandler.isAudioLoaded}, duration: ${
-          audioPlayer.duration
-        }, currentTime ${audioPlayer.currentTime}, remainingTime: ${
-          audioPlayer.duration - audioPlayer.currentTime
-        }`
-      );
       prefetchManager.startPrefetch();
     }
   });
@@ -161,67 +154,73 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Không tìm thấy chương tiếp theo!");
       return;
     }
+
     if (prefetchManager.isPrefetching) {
       try {
         const { chunks, response, reader } =
           prefetchManager.getPrefetchedData();
-        if (response) {
-          chapterNavigator.update(response, createNavigationUI);
-          updateUrlParameter("chapterUrl", nextChapter.url);
-          chapterUrlInput.value = nextChapter.url;
-        } else {
+
+        if (!response) {
           throw new Error("Prefetch has failed!");
         }
 
+        chapterNavigator.update(response, createNavigationUI);
+        updateUrlParameter("chapterUrl", nextChapter.url);
+        chapterUrlInput.value = nextChapter.url;
+
         await audioHandler.reset();
 
+        // Process any prefetched chunks
         if (chunks?.length > 0) {
-          console.log("prefetch chunks length: ", chunks.length);
-          chunks.forEach((chunk) => {
-            const playbackStarted = audioHandler.addChunk(chunk);
-            resultDiv.textContent = playbackStarted
-              ? "Playing..."
-              : "Loading audio...";
-          });
-          if (!reader) {
-            audioHandler.updateSource(true);
-            prefetchManager.resetPrefetch();
+          for (const chunk of chunks) {
+            if (chunk) {
+              const playbackStarted = audioHandler.addChunk(chunk);
+              resultDiv.textContent = playbackStarted
+                ? "Playing..."
+                : "Loading audio...";
+            }
           }
         }
 
-        console.log("prefetch reader", reader);
+        // If the reader is still available, continue reading
         if (reader) {
           try {
             while (true) {
-              const { done, value } = reader.read();
-              console.log(done, value?.length);
+              const { done, value } = await reader.read();
               if (done) {
                 audioHandler.updateSource(true);
                 prefetchManager.resetPrefetch();
-                console.log("prefetch done, reset");
                 break;
               }
-              audioHandler.addChunk(value);
+              if (value) {
+                audioHandler.addChunk(value);
+              }
             }
           } catch (err) {
-            if (err.name !== "AbortError") {
+            if (err.name === "AbortError") {
+              prefetchManager.resetPrefetch();
+            } else {
               console.error("Error while continuing fetch: ", err);
+              // Fall back to regular form submission
               chapterUrlInput.value = nextChapter.url;
               form.dispatchEvent(new Event("submit"));
             }
           }
+        } else {
+          // If no reader (prefetch completed), finalize the audio
+          audioHandler.updateSource(true);
+          prefetchManager.resetPrefetch();
+          resultDiv.textContent = "";
         }
       } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Error while continuing fetch: ", err);
-        }
+        console.error("Error handling prefetched data:", err);
+        // Fall back to regular form submission
         chapterUrlInput.value = nextChapter.url;
         form.dispatchEvent(new Event("submit"));
       }
     } else {
       chapterUrlInput.value = nextChapter.url;
       form.dispatchEvent(new Event("submit"));
-      return;
     }
   });
 

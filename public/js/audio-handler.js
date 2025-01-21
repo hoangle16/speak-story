@@ -10,6 +10,7 @@ export class AudioHandler {
     this.isCleaningUp = false;
     this.currentController = null;
     this.isAudioLoaded = false;
+    this.TIME_GAP = 5;
   }
 
   async reset() {
@@ -66,7 +67,6 @@ export class AudioHandler {
     }
 
     if (isAudioLoaded) {
-      console.log("Audio loaded");
       this.isAudioLoaded = true;
     }
 
@@ -96,7 +96,8 @@ export class AudioHandler {
       return true;
     } else if (
       this.playbackStarted &&
-      this.audioPlayer.duration - this.audioPlayer.currentTime < 5 &&
+      this.audioPlayer.duration - this.audioPlayer.currentTime <
+        this.TIME_GAP &&
       !this.isCleaningUp
     ) {
       this.updateSource();
