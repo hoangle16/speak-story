@@ -5,6 +5,7 @@ import { ThemeManager } from "./theme-manager.js";
 import { TimerHandler } from "./timer-handler.js";
 import { TTSSettings } from "./tts-settings.js";
 import { isValidUrl } from "./utils.js";
+import { PrefetchManager } from "./prefetch-manager.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const themeManager = new ThemeManager();
@@ -28,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     chapterUrlInput,
     form
   );
+  const prefetchManager = new PrefetchManager(audioHandler, chapterNavigator);
   const timerHandler = new TimerHandler(audioPlayer, timerDisplay);
   timerHandler.init();
 
@@ -80,6 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     resultDiv.textContent = "";
 
     await audioHandler.reset();
+    prefetchManager.resetPrefetch();
     updateUrlParameter("chapterUrl", chapterUrlInput.value);
     ttsSettings.saveSettings();
     try {
@@ -105,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { done, value } = await reader.read();
 
         if (done) {
-          audioHandler.updateSource();
+          audioHandler.updateSource(true);
           resultDiv.textContent = "";
           break;
         }
@@ -134,15 +137,91 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
+  audioPlayer.addEventListener("timeupdate", () => {
+    if (
+      audioHandler.isAudioLoaded &&
+      audioPlayer.duration - audioPlayer.currentTime <= 30 &&
+      !prefetchManager.isPrefetching
+    ) {
+      console.log(
+        `isLoaded ${audioHandler.isAudioLoaded}, duration: ${
+          audioPlayer.duration
+        }, currentTime ${audioPlayer.currentTime}, remainingTime: ${
+          audioPlayer.duration - audioPlayer.currentTime
+        }`
+      );
+      prefetchManager.startPrefetch();
+    }
+  });
+
   // Auto-play next chapter
-  audioPlayer.addEventListener("ended", () => {
+  audioPlayer.addEventListener("ended", async () => {
     const nextChapter = chapterNavigator.getNextChapter();
-    console.log("Next chapter", isValidUrl(nextChapter?.url));
-    if (isValidUrl(nextChapter?.url)) {
+    if (!isValidUrl(nextChapter?.url)) {
+      alert("Không tìm thấy chương tiếp theo!");
+      return;
+    }
+    if (prefetchManager.isPrefetching) {
+      try {
+        const { chunks, response, reader } =
+          prefetchManager.getPrefetchedData();
+        if (response) {
+          chapterNavigator.update(response, createNavigationUI);
+          updateUrlParameter("chapterUrl", nextChapter.url);
+          chapterUrlInput.value = nextChapter.url;
+        } else {
+          throw new Error("Prefetch has failed!");
+        }
+
+        await audioHandler.reset();
+
+        if (chunks?.length > 0) {
+          console.log("prefetch chunks length: ", chunks.length);
+          chunks.forEach((chunk) => {
+            const playbackStarted = audioHandler.addChunk(chunk);
+            resultDiv.textContent = playbackStarted
+              ? "Playing..."
+              : "Loading audio...";
+          });
+          if (!reader) {
+            audioHandler.updateSource(true);
+            prefetchManager.resetPrefetch();
+          }
+        }
+
+        console.log("prefetch reader", reader);
+        if (reader) {
+          try {
+            while (true) {
+              const { done, value } = reader.read();
+              console.log(done, value?.length);
+              if (done) {
+                audioHandler.updateSource(true);
+                prefetchManager.resetPrefetch();
+                console.log("prefetch done, reset");
+                break;
+              }
+              audioHandler.addChunk(value);
+            }
+          } catch (err) {
+            if (err.name !== "AbortError") {
+              console.error("Error while continuing fetch: ", err);
+              chapterUrlInput.value = nextChapter.url;
+              form.dispatchEvent(new Event("submit"));
+            }
+          }
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Error while continuing fetch: ", err);
+        }
+        chapterUrlInput.value = nextChapter.url;
+        form.dispatchEvent(new Event("submit"));
+      }
+    } else {
       chapterUrlInput.value = nextChapter.url;
       form.dispatchEvent(new Event("submit"));
-    } else {
-      alert("Không tìm thấy chương tiếp theo.");
+      return;
     }
   });
 

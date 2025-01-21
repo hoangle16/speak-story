@@ -1,5 +1,5 @@
 export class AudioHandler {
-  constructor(audioPlayer, minBufferSize = 128 * 1024) {
+  constructor(audioPlayer, minBufferSize = 64 * 1024) {
     this.audioPlayer = audioPlayer;
     this.audioChunks = [];
     this.totalBytesReceived = 0;
@@ -9,6 +9,7 @@ export class AudioHandler {
     this.playbackStarted = false;
     this.isCleaningUp = false;
     this.currentController = null;
+    this.isAudioLoaded = false;
   }
 
   async reset() {
@@ -28,6 +29,7 @@ export class AudioHandler {
     this.totalBytesReceived = 0;
     this.lastUpdate = 0;
     this.playbackStarted = false;
+    this.isAudioLoaded = false;
 
     if (this.currentBlobUrl) {
       URL.revokeObjectURL(this.currentBlobUrl);
@@ -40,7 +42,7 @@ export class AudioHandler {
     this.isCleaningUp = false;
   }
 
-  updateSource() {
+  updateSource(isAudioLoaded = false) {
     if (this.isCleaningUp) return;
 
     const oldUrl = this.currentBlobUrl;
@@ -63,6 +65,11 @@ export class AudioHandler {
       }
     }
 
+    if (isAudioLoaded) {
+      console.log("Audio loaded");
+      this.isAudioLoaded = true;
+    }
+
     if (oldUrl) {
       URL.revokeObjectURL(oldUrl);
     }
@@ -72,7 +79,7 @@ export class AudioHandler {
     if (this.isCleaningUp) return false;
 
     this.audioChunks.push(chunk);
-    this.totalBytesReceived += chunk.length;
+    this.totalBytesReceived += chunk.length || 0;
 
     if (
       !this.playbackStarted &&
@@ -89,7 +96,7 @@ export class AudioHandler {
       return true;
     } else if (
       this.playbackStarted &&
-      this.audioPlayer.duration - this.audioPlayer.currentTime < 10 &&
+      this.audioPlayer.duration - this.audioPlayer.currentTime < 5 &&
       !this.isCleaningUp
     ) {
       this.updateSource();

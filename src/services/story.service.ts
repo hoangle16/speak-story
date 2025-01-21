@@ -130,9 +130,9 @@ const createBNSachScraper = (): ScraperConfig => ({
 
 // Scraper map
 const scrapers: Record<string, () => ScraperConfig> = {
-  "truyenyy.vip": createTruyenYYScraper,
-  "truyencom.com": createTruyenComScraper,
-  "bnsach.com": createBNSachScraper,
+  truyenyy: createTruyenYYScraper,
+  truyencom: createTruyenComScraper,
+  bnsach: createBNSachScraper,
 };
 
 // Main scraping functions
@@ -153,8 +153,10 @@ const scrapeWithPuppeteer = async (
     page.on("request", (request) => {
       const url = request.url();
       if (
-        request.resourceType() === "script" &&
-        url.includes("content-protector")
+        ["image", "stylesheet", "font"].indexOf(request.resourceType()) !==
+          -1 ||
+        (request.resourceType() === "script" &&
+          url.includes("content-protector"))
       ) {
         request.abort();
       } else {
@@ -241,8 +243,9 @@ const scrapeWithCheerio = async (
 
 // Main function
 export const getStoryContent = async (url: string): Promise<StoryContent> => {
-  const domain = new URL(url).host;
-  const getScraperConfig = scrapers[domain];
+  const domain = new URL(url).hostname;
+  const key = domain.replace(/^(www\.)?/, "").split(".")[0];
+  const getScraperConfig = scrapers[key];
 
   if (!getScraperConfig) {
     throw new Error(`Unsupported domain: ${domain}`);
@@ -269,7 +272,9 @@ export const getStoryContent = async (url: string): Promise<StoryContent> => {
       (axios.isAxiosError(err) && err.response?.status === 403) ||
       (err instanceof Error && err.message === "Couldn't extract content")
     ) {
-      console.log("get content with puppeteer");
+      console.log(
+        `[${new Date().toLocaleTimeString()}] get content with puppeteer`
+      );
       return scrapeWithPuppeteer(url, config);
     }
     throw err;

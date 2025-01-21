@@ -17,7 +17,6 @@ export const createNavigationUI = (
 `;
 
 const createPrevButton = (prevChapter) => {
-  console.log(isValidUrl(prevChapter?.url));
   if (isValidUrl(prevChapter?.url)) {
     return `
   <button 
