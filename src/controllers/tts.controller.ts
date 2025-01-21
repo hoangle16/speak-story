@@ -50,7 +50,10 @@ export const convertTextToSpeech = async (
     res.setHeader("X-Next-Chapter", encodedChapters.next);
     res.setHeader("X-Prev-Chapter", encodedChapters.prev);
 
-    console.log("content: ", content.substring(0, 100));
+    console.log(
+      `[${new Date().toLocaleTimeString()}] content: `,
+      content.substring(0, 100)
+    );
 
     const audioStream = await ttsService.getTTSStream({
       text: content,
@@ -62,7 +65,7 @@ export const convertTextToSpeech = async (
     audioStream.pipe(res);
 
     audioStream.on("end", () => {
-      console.log("Steaming ended.");
+      console.log(`[${new Date().toLocaleTimeString()}] Steaming ended.`);
       res.end();
     });
     audioStream.on("error", (err) => {
