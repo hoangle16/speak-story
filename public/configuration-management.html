@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en" class="dark:bg-gray-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuration Management - Speak Story</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/img/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/img/favicon-16x16.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/img/apple-touch-icon.png"
+    />
+    <link rel="manifest" href="/img/site.webmanifest" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <script>
+      // Check for dark mode preference
+      if (
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
+    <header
+      class="bg-white dark:bg-gray-800 shadow-lg border-t border-gray-200 dark:border-gray-700 transition-colors duration-200 mb-4"
+    >
+      <div
+        class="container mx-auto px-4 py-3 flex justify-between items-center"
+      >
+        <a
+          href="/"
+          class="text-2xl font-bold text-blue-500 hover:text-blue-600 dark:text-blue-400 transition-colors"
+        >
+          Speak Story
+        </a>
+        <button
+          id="themeToggle"
+          class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          aria-label="Toggle theme"
+        >
+          <!-- Sun icon (shown in dark mode) -->
+          <svg
+            class="hidden dark:block w-5 h-5 text-yellow-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+          <!-- Moon icon (shown in light mode) -->
+          <svg
+            class="block dark:hidden w-5 h-5 text-gray-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+    <main class="flex-1">
+      <div
+        class="bg-white mx-auto max-w-7xl dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden p-4 mt-6"
+      >
+        <div
+          class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center"
+        >
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Configurations Management
+          </h2>
+          <button
+            id="addConfigBtn"
+            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add New Config
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Key
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Domain
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="configTableBody"
+              class="divide-y divide-gray-200 dark:divide-gray-700"
+            ></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="bg-white dark:bg-gray-800 shadow-lg border-t border-gray-200 dark:border-gray-700 mt-8 transition-colors duration-200"
+    >
+      <div
+        class="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4"
+      >
+        <p class="text-gray-700 dark:text-gray-200">
+          &copy; 2025 Speak Story. All rights reserved.
+        </p>
+        <ul class="flex items-center gap-4">
+          <li>
+            <a
+              href="#"
+              class="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Privacy Policy
+            </a>
+          </li>
+          <li>
+            <a
+              href="#"
+              class="text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Terms & Conditions
+            </a>
+          </li>
+        </ul>
+      </div>
+    </footer>
+
+    <!-- Add/Edit Form Modal -->
+    <div
+      id="formModal"
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 items-center justify-center hidden"
+    >
+      <div
+        class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl mx-auto mt-10 mb-10 shadow-xl"
+      >
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3
+            id="modalTitle"
+            class="text-xl font-semibold text-gray-900 dark:text-white"
+          >
+            Add New Configuration
+          </h3>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <form id="configForm" class="space-y-6">
+            <!-- Key -->
+            <div class="space-y-1">
+              <label
+                for="formKey"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Key
+              </label>
+              <input
+                type="text"
+                id="formKey"
+                name="key"
+                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                required
+                placeholder="Enter configuration key"
+              />
+            </div>
+
+            <!-- Domain -->
+            <div class="space-y-1">
+              <label
+                for="formDomain"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Domain
+              </label>
+              <input
+                type="text"
+                id="formDomain"
+                name="domain"
+                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                required
+                placeholder="e.g., example.com"
+              />
+            </div>
+
+            <!-- Selector Groups -->
+            <div class="space-y-4">
+              <!-- Basic Selectors -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Content Selector -->
+                <div class="space-y-1">
+                  <label
+                    for="formContent"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Content Selector
+                  </label>
+                  <input
+                    type="text"
+                    id="formContent"
+                    name="content"
+                    class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                    required
+                    placeholder="CSS selector for content"
+                  />
+                </div>
+
+                <!-- Title Selector -->
+                <div class="space-y-1">
+                  <label
+                    for="formTitle"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Title Selector
+                  </label>
+                  <input
+                    type="text"
+                    id="formTitle"
+                    name="title"
+                    class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                    required
+                    placeholder="CSS selector for title"
+                  />
+                </div>
+              </div>
+
+              <!-- Next Chapter Selectors -->
+              <fieldset class="border rounded-md p-4 dark:border-gray-600">
+                <legend
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 px-2"
+                >
+                  Next Chapter Selectors
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div class="space-y-1">
+                    <label
+                      for="formNextCheerio"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Cheerio Selector
+                    </label>
+                    <input
+                      type="text"
+                      id="formNextCheerio"
+                      name="nextCheerio"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      required
+                      placeholder="Cheerio selector"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label
+                      for="formNextPuppeteer"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Puppeteer Selector
+                    </label>
+                    <input
+                      type="text"
+                      id="formNextPuppeteer"
+                      name="nextPuppeteer"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      required
+                      placeholder="Puppeteer selector"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- Previous Chapter Selectors -->
+              <fieldset class="border rounded-md p-4 dark:border-gray-600">
+                <legend
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 px-2"
+                >
+                  Previous Chapter Selectors
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div class="space-y-1">
+                    <label
+                      for="formPrevCheerio"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Cheerio Selector
+                    </label>
+                    <input
+                      type="text"
+                      id="formPrevCheerio"
+                      name="prevCheerio"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      required
+                      placeholder="Cheerio selector"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label
+                      for="formPrevPuppeteer"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Puppeteer Selector
+                    </label>
+                    <input
+                      type="text"
+                      id="formPrevPuppeteer"
+                      name="prevPuppeteer"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      required
+                      placeholder="Puppeteer selector"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div
+          class="px-6 py-4 bg-gray-50 dark:bg-gray-700 rounded-b-lg flex justify-end space-x-3"
+        >
+          <button
+            type="button"
+            id="cancelBtn"
+            class="px-4 py-2 bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="configForm"
+            class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/js/config-manager.js"></script>
+  </body>
+</html>

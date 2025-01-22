@@ -23,7 +23,7 @@ export class PrefetchManager {
     try {
       const formData = new FormData();
       formData.append("chapterUrl", nextChapter.url);
-      formData.append("voice", document.getElementById("voice").value);
+      formData.append("voiceShortName", document.getElementById("voice").value);
       formData.append("rate", document.getElementById("rate").value);
       formData.append("pitch", document.getElementById("pitch").value);
 

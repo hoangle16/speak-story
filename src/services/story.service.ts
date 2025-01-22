@@ -1,35 +1,8 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import * as puppeteer from "puppeteer";
-
-// Types
-interface Chapter {
-  url: string | null;
-  title: string | null;
-}
-
-interface StoryContent {
-  content: string;
-  currentChapter: Chapter;
-  nextChapter: Chapter;
-  prevChapter: Chapter;
-}
-
-interface ScraperConfig {
-  domain: string;
-  selectors: {
-    content: string;
-    title: string;
-    nextChapter: {
-      cheerio: string;
-      puppeteer: string;
-    };
-    prevChapter: {
-      cheerio: string;
-      puppeteer: string;
-    };
-  };
-}
+import { configService } from "../services/config.service";
+import { Chapter, ScraperConfig, StoryContent } from "../interfaces/scraper.interface";
 
 // Helper functions
 const formatUrl = (path: string | null, domain: string): string | null => {
@@ -77,62 +50,6 @@ const getChapterInfoWithPuppeteer = async (
     url: href,
     title: title || null,
   };
-};
-
-// Scraper creators for different sites
-const createTruyenYYScraper = (): ScraperConfig => ({
-  domain: "truyenyy.vip",
-  selectors: {
-    content: "#inner_chap_content_1",
-    title: "h1.chap-title",
-    nextChapter: {
-      cheerio: "a.weui-btn_primary:contains('Tiếp')",
-      puppeteer: "a.weui-btn_primary",
-    },
-    prevChapter: {
-      cheerio: "a.weui-btn_default:contains('Trước')",
-      puppeteer: "a.weui-btn_default",
-    },
-  },
-});
-
-const createTruyenComScraper = (): ScraperConfig => ({
-  domain: "truyen.com",
-  selectors: {
-    content: "#chapter-c",
-    title: "a.chapter-title",
-    nextChapter: {
-      cheerio: "#next_chap",
-      puppeteer: "#next_chap",
-    },
-    prevChapter: {
-      cheerio: "#prev_chap",
-      puppeteer: "#prev_chap",
-    },
-  },
-});
-
-const createBNSachScraper = (): ScraperConfig => ({
-  domain: "bnsach.com",
-  selectors: {
-    content: "#noi-dung",
-    title: "#chuong-title",
-    nextChapter: {
-      cheerio: "a.page-next.chuong-button",
-      puppeteer: "a.page-next.chuong-button",
-    },
-    prevChapter: {
-      cheerio: "a.page-prev.chuong-button",
-      puppeteer: "a.page-prev.chuong-button",
-    },
-  },
-});
-
-// Scraper map
-const scrapers: Record<string, () => ScraperConfig> = {
-  truyenyy: createTruyenYYScraper,
-  truyencom: createTruyenComScraper,
-  bnsach: createBNSachScraper,
 };
 
 // Main scraping functions
@@ -245,13 +162,11 @@ const scrapeWithCheerio = async (
 export const getStoryContent = async (url: string): Promise<StoryContent> => {
   const domain = new URL(url).hostname;
   const key = domain.replace(/^(www\.)?/, "").split(".")[0];
-  const getScraperConfig = scrapers[key];
+  const config = await configService.getConfig(key);
 
-  if (!getScraperConfig) {
+  if (!config) {
     throw new Error(`Unsupported domain: ${domain}`);
   }
-
-  const config = getScraperConfig();
 
   try {
     const { data } = await axios.get(url, {
