@@ -1,4 +1,4 @@
-import { db } from "../config/firebase.db";
+import { db } from "../config/firebase";
 import { ScraperConfig } from "../interfaces/scraper.interface";
 
 const CONFIG_REF = "ScraperConfig";
@@ -73,14 +73,24 @@ export const configService = {
   },
 
   validateConfig(config: ScraperConfig): boolean {
+    const hasChapterNumber =
+      !!config.chapterNumber?.pattern?.regex &&
+      !isNaN(config.chapterNumber.pattern.groupIndex);
+
+    const hasSelectors = !!(
+      config.selectors.nextChapter?.cheerio ||
+      config.selectors.nextChapter?.puppeteer ||
+      config.selectors.prevChapter?.cheerio ||
+      config.selectors.prevChapter?.puppeteer
+    );
+
     return !!(
-      config.domain &&
-      config.selectors &&
-      config.selectors.content &&
-      config.selectors.title &&
-      config.selectors.title &&
-      config.selectors.nextChapter &&
-      config.selectors.prevChapter
+      (
+        config.domain &&
+        config.selectors.content &&
+        config.selectors.title &&
+        hasChapterNumber !== hasSelectors
+      ) // XOR CHECK
     );
   },
 };

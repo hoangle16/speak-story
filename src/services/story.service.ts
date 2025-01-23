@@ -2,12 +2,58 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import * as puppeteer from "puppeteer";
 import { configService } from "../services/config.service";
-import { Chapter, ScraperConfig, StoryContent } from "../interfaces/scraper.interface";
+import {
+  Chapter,
+  ChapterNumberPattern,
+  ScraperConfig,
+  StoryContent,
+} from "../interfaces/scraper.interface";
 
 // Helper functions
 const formatUrl = (path: string | null, domain: string): string | null => {
   if (!path) return null;
   return new URL(path, `https://${domain}`).href;
+};
+
+const extractChapterNumber = (
+  url: string,
+  pattern: ChapterNumberPattern
+): number | null => {
+  const regexString = pattern.regex;
+  const regexParts = regexString.match(/^\/(.*)\/([gimsuy]*)$/);
+  if (!regexParts) {
+    throw new Error("Invalid regex format");
+  }
+  const regex = new RegExp(regexParts[1], regexParts[2]);
+  const match = url.match(regex);
+
+  if (!match) return null;
+
+  const numberStr = match[pattern.groupIndex];
+  const number = parseInt(numberStr, 10);
+  return isNaN(number) ? null : number;
+};
+
+const generateChapterUrl = (
+  currentUrl: string,
+  newNumber: number,
+  pattern: { regex: string; groupIndex: number }
+): string | null => {
+  const regexString = pattern.regex;
+  const regexParts = regexString.match(/^\/(.*)\/([gimsuy]*)$/);
+  if (!regexParts) {
+    throw new Error("Invalid regex format");
+  }
+  const regex = new RegExp(regexParts[1], regexParts[2]);
+
+  const match = currentUrl.match(regex);
+  if (!match) return null;
+
+  const newUrl = currentUrl.replace(regex, (original) => {
+    return original.replace(match[pattern.groupIndex], newNumber.toString());
+  });
+
+  return newUrl;
 };
 
 const extractChapterInfo = (
@@ -97,26 +143,52 @@ const scrapeWithPuppeteer = async (
       page,
       config.selectors.title
     );
-    const nextChapter = await getChapterInfoWithPuppeteer(
-      page,
-      config.selectors.nextChapter.puppeteer
-    );
-    const prevChapter = await getChapterInfoWithPuppeteer(
-      page,
-      config.selectors.prevChapter.puppeteer
-    );
+
+    let nextChapter: Chapter = { url: null, title: null };
+    let prevChapter: Chapter = { url: null, title: null };
+    if (config.chapterNumber?.pattern) {
+      const currentNumber = extractChapterNumber(
+        url,
+        config.chapterNumber.pattern
+      );
+      if (currentNumber !== null) {
+        const nextUrl = generateChapterUrl(
+          url,
+          currentNumber + 1,
+          config.chapterNumber.pattern
+        );
+        const prevUrl = generateChapterUrl(
+          url,
+          currentNumber - 1,
+          config.chapterNumber.pattern
+        );
+        nextChapter = {
+          url: formatUrl(nextUrl, config.domain),
+          title: `Chương ${currentNumber + 1}`,
+        };
+        prevChapter = {
+          url: formatUrl(prevUrl, config.domain),
+          title: `Chương ${currentNumber - 1}`,
+        };
+      } else {
+        const nextChapter = await getChapterInfoWithPuppeteer(
+          page,
+          config.selectors.nextChapter!.puppeteer
+        );
+        const prevChapter = await getChapterInfoWithPuppeteer(
+          page,
+          config.selectors.prevChapter!.puppeteer
+        );
+        nextChapter.url = formatUrl(nextChapter.url, config.domain);
+        prevChapter.url = formatUrl(prevChapter.url, config.domain);
+      }
+    }
 
     return {
       content: content + "\n" + ".Cách chương",
       currentChapter: { url, title },
-      nextChapter: {
-        url: formatUrl(nextChapter.url, config.domain),
-        title: nextChapter.title,
-      },
-      prevChapter: {
-        url: formatUrl(prevChapter.url, config.domain),
-        title: prevChapter.title,
-      },
+      nextChapter,
+      prevChapter,
     };
   } finally {
     await browser.close();
@@ -135,26 +207,48 @@ const scrapeWithCheerio = async (
     throw new Error("Couldn't extract content");
   }
   const title = extractText($, config.selectors.title);
-  const nextChapter = extractChapterInfo(
-    $,
-    config.selectors.nextChapter.cheerio
-  );
-  const prevChapter = extractChapterInfo(
-    $,
-    config.selectors.prevChapter.cheerio
-  );
+
+  let nextChapter: Chapter = { url: null, title: null };
+  let prevChapter: Chapter = { url: null, title: null };
+  if (config.chapterNumber?.pattern) {
+    const currentNumber = extractChapterNumber(
+      url,
+      config.chapterNumber.pattern
+    );
+
+    if (currentNumber !== null) {
+      const nextUrl = generateChapterUrl(
+        url,
+        currentNumber + 1,
+        config.chapterNumber.pattern
+      );
+      const prevUrl = generateChapterUrl(
+        url,
+        currentNumber - 1,
+        config.chapterNumber.pattern
+      );
+
+      nextChapter = {
+        url: formatUrl(nextUrl, config.domain),
+        title: `Chương ${currentNumber + 1}`,
+      };
+      prevChapter = {
+        url: formatUrl(prevUrl, config.domain),
+        title: `Chương ${currentNumber - 1}`,
+      };
+    }
+  } else {
+    nextChapter = extractChapterInfo($, config.selectors.nextChapter!.cheerio);
+    prevChapter = extractChapterInfo($, config.selectors.prevChapter!.cheerio);
+    nextChapter.url = formatUrl(nextChapter.url, config.domain);
+    prevChapter.url = formatUrl(prevChapter.url, config.domain);
+  }
 
   return {
     content: content + "\n" + ".Cách chương",
     currentChapter: { url, title },
-    nextChapter: {
-      url: formatUrl(nextChapter.url, config.domain),
-      title: nextChapter.title,
-    },
-    prevChapter: {
-      url: formatUrl(prevChapter.url, config.domain),
-      title: prevChapter.title,
-    },
+    nextChapter,
+    prevChapter,
   };
 };
 

@@ -15,12 +15,20 @@ export interface SelectorConfig {
   puppeteer: string;
 }
 
+export interface ChapterNumberPattern {
+  regex: string;
+  groupIndex: number;
+}
+
 export interface ScraperConfig {
   domain: string;
   selectors: {
     content: string;
     title: string;
-    nextChapter: SelectorConfig;
-    prevChapter: SelectorConfig;
+    nextChapter?: SelectorConfig;
+    prevChapter?: SelectorConfig;
+  };
+  chapterNumber?: {
+    pattern: ChapterNumberPattern;
   };
 }

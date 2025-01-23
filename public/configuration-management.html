@@ -23,6 +23,21 @@
     />
     <link rel="manifest" href="/img/site.webmanifest" />
     <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .error-border {
+        border-color: #ef4444 !important;
+      }
+      .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    </style>
     <script>
       // Check for dark mode preference
       if (
@@ -49,42 +64,50 @@
         >
           Speak Story
         </a>
-        <button
-          id="themeToggle"
-          class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          aria-label="Toggle theme"
-        >
-          <!-- Sun icon (shown in dark mode) -->
-          <svg
-            class="hidden dark:block w-5 h-5 text-yellow-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+        <div class="flex items-center space-x-4">
+          <button
+            id="loginButton"
+            class="px-4 py-2 bg-blue-500 font-semibold text-white rounded-md hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-            />
-          </svg>
-          <!-- Moon icon (shown in light mode) -->
-          <svg
-            class="block dark:hidden w-5 h-5 text-gray-700"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+            Login
+          </button>
+          <button
+            id="themeToggle"
+            class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            aria-label="Toggle theme"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            />
-          </svg>
-        </button>
+            <!-- Sun icon (shown in dark mode) -->
+            <svg
+              class="hidden dark:block w-5 h-5 text-yellow-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <!-- Moon icon (shown in light mode) -->
+            <svg
+              class="block dark:hidden w-5 h-5 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
     <main class="flex-1">
@@ -197,8 +220,9 @@
         </div>
 
         <!-- Modal Body -->
-        <div class="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div class="px-6 py-4 max-h-[calc(100vh-300px)] overflow-y-auto">
           <form id="configForm" class="space-y-6">
+            <div id="errorContainer" class="hidden"></div>
             <!-- Key -->
             <div class="space-y-1">
               <label
@@ -235,47 +259,82 @@
               />
             </div>
 
-            <!-- Selector Groups -->
-            <div class="space-y-4">
-              <!-- Basic Selectors -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Content Selector -->
-                <div class="space-y-1">
-                  <label
-                    for="formContent"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Content Selector
-                  </label>
-                  <input
-                    type="text"
-                    id="formContent"
-                    name="content"
-                    class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                    required
-                    placeholder="CSS selector for content"
-                  />
-                </div>
-
-                <!-- Title Selector -->
-                <div class="space-y-1">
-                  <label
-                    for="formTitle"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Title Selector
-                  </label>
-                  <input
-                    type="text"
-                    id="formTitle"
-                    name="title"
-                    class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                    required
-                    placeholder="CSS selector for title"
-                  />
-                </div>
+            <!-- Basic Selectors -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Content Selector -->
+              <div class="space-y-1">
+                <label
+                  for="formContent"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Content Selector
+                </label>
+                <input
+                  type="text"
+                  id="formContent"
+                  name="content"
+                  class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                  required
+                  placeholder="CSS selector for content"
+                />
               </div>
 
+              <!-- Title Selector -->
+              <div class="space-y-1">
+                <label
+                  for="formTitle"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Title Selector
+                </label>
+                <input
+                  type="text"
+                  id="formTitle"
+                  name="title"
+                  class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                  required
+                  placeholder="CSS selector for title"
+                />
+              </div>
+            </div>
+
+            <!-- Navigation Method Toggle -->
+            <div class="flex gap-4 p-2 border rounded-md dark:border-gray-600">
+              <div class="flex items-center">
+                <input
+                  type="radio"
+                  id="methodSelectors"
+                  name="navMethod"
+                  value="selectors"
+                  checked
+                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                />
+                <label
+                  for="methodSelectors"
+                  class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Use Chapter Selectors
+                </label>
+              </div>
+              <div class="flex items-center">
+                <input
+                  type="radio"
+                  id="methodChapterNumber"
+                  name="navMethod"
+                  value="chapterNumber"
+                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
+                />
+                <label
+                  for="methodChapterNumber"
+                  class="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Use Chapter Number
+                </label>
+              </div>
+            </div>
+
+            <!-- Selector Groups -->
+            <div id="selectorsSection" class="space-y-4">
               <!-- Next Chapter Selectors -->
               <fieldset class="border rounded-md p-4 dark:border-gray-600">
                 <legend
@@ -296,7 +355,6 @@
                       id="formNextCheerio"
                       name="nextCheerio"
                       class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                      required
                       placeholder="Cheerio selector"
                     />
                   </div>
@@ -312,7 +370,6 @@
                       id="formNextPuppeteer"
                       name="nextPuppeteer"
                       class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                      required
                       placeholder="Puppeteer selector"
                     />
                   </div>
@@ -339,7 +396,6 @@
                       id="formPrevCheerio"
                       name="prevCheerio"
                       class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                      required
                       placeholder="Cheerio selector"
                     />
                   </div>
@@ -355,8 +411,50 @@
                       id="formPrevPuppeteer"
                       name="prevPuppeteer"
                       class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
-                      required
                       placeholder="Puppeteer selector"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+
+            <div id="chapterNumberSection" class="hidden">
+              <fieldset class="border rounded-md p-4 dark:border-gray-600">
+                <legend
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 px-2"
+                >
+                  Chapter Number Pattern
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                  <div class="space-y-1">
+                    <label
+                      for="formChapterRegex"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Regular Expression
+                    </label>
+                    <input
+                      type="text"
+                      id="formChapterRegex"
+                      name="chapterRegex"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      placeholder="e.g., /chuong-(\\d+)\\.html$/"
+                    />
+                  </div>
+                  <div class="space-y-1">
+                    <label
+                      for="formChapterGroup"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Capture Group Index
+                    </label>
+                    <input
+                      type="number"
+                      id="formChapterGroup"
+                      name="chapterGroup"
+                      class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                      placeholder="e.g., 1"
+                      min="0"
                     />
                   </div>
                 </div>
@@ -366,9 +464,7 @@
         </div>
 
         <!-- Modal Footer -->
-        <div
-          class="px-6 py-4 bg-gray-50 dark:bg-gray-700 rounded-b-lg flex justify-end space-x-3"
-        >
+        <div class="px-6 py-4 rounded-b-lg flex justify-end space-x-3">
           <button
             type="button"
             id="cancelBtn"
