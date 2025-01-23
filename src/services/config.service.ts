@@ -1,4 +1,4 @@
-import { db } from "../config/firebase.db";
+import { db } from "../config/firebase";
 import { ScraperConfig } from "../interfaces/scraper.interface";
 
 const CONFIG_REF = "ScraperConfig";

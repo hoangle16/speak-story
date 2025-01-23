@@ -13,6 +13,14 @@ class ConfigManager {
     this.loadConfigs();
   }
 
+  getAuthHeaders() {
+    const accessToken = localStorage.getItem("accessToken");
+    return {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + accessToken,
+    };
+  }
+
   bindEvents() {
     // Add config button
     document.getElementById("addConfigBtn").addEventListener("click", () => {
@@ -33,8 +41,17 @@ class ConfigManager {
 
   async loadConfigs() {
     try {
-      const response = await fetch("/api/selectors/configs");
-      if (!response.ok) throw new Error("Failed to load configs");
+      const response = await fetch("/api/selectors/configs", {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.handleTokenRefresh();
+          return;
+        }
+        throw new Error("Failed to load configs");
+      }
       this.configs = await response.json();
       this.renderTable();
     } catch (error) {
@@ -130,16 +147,20 @@ class ConfigManager {
 
       const response = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify({
           domain: formData.domain,
           selectors: formData.selectors,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to save config");
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.handleTokenRefresh();
+          return;
+        }
+        throw new Error("Failed to save config");
+      }
 
       await this.loadConfigs();
       this.closeForm();
@@ -161,9 +182,16 @@ class ConfigManager {
       try {
         const response = await fetch(`/api/selectors/configs/${key}`, {
           method: "DELETE",
+          headers: this.getAuthHeaders(),
         });
 
-        if (!response.ok) throw new Error("Failed to delete config");
+        if (!response.ok) {
+          if (response.status === 401) {
+            this.handleTokenRefresh();
+            return;
+          }
+          throw new Error("Failed to delete config");
+        }
 
         await this.loadConfigs();
       } catch (error) {
@@ -172,10 +200,42 @@ class ConfigManager {
       }
     }
   }
+
+  handleTokenRefresh() {
+    // TODO: Implement token refresh logic
+    // 1. Using the refresh token to get a new access token
+    // 2. Updating localStorage with new tokens
+    // 3. Retrying the original request
+    // If refresh fails, log out the user
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    window.location.href = "/";
+  }
 }
 
 // Initialize the configuration manager when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
+  const loginButton = document.getElementById("loginButton");
+
+  const checkAuthState = () => {
+    const accessToken = localStorage.getItem("accessToken");
+    const user = localStorage.getItem("user");
+
+    if (!accessToken || !user || JSON.parse(user)?.role !== "admin") {
+      window.location.href = "/";
+    }
+    loginButton.textContent = "Logout";
+    loginButton.addEventListener("click", () => {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      window.location.href = "/";
+    });
+  };
+
+  checkAuthState();
+
   const themeManager = new ThemeManager();
   themeManager.init();
   new ConfigManager();
