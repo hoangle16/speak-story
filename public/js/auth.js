@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const forgotPasswordLink = document.getElementById("forgotPasswordLink");
   const registerForm = document.getElementById("registerForm");
   const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+  const navList = document.getElementById("nav-list");
 
   // Toggle between login, register, and forgot password forms
   function showForm(formToShow) {
@@ -29,6 +30,19 @@ document.addEventListener("DOMContentLoaded", () => {
         loginModal.classList.remove("hidden");
         loginModal.classList.add("flex");
       });
+    }
+    const user = localStorage.getItem("user");
+    if (user && JSON.parse(user)?.role === "admin") {
+      const navItem = document.createElement("li");
+      const navLink = document.createElement("a");
+
+      navLink.className =
+        "text-base font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors";
+      navLink.href = "/admin/configs";
+      navLink.textContent = "Configs";
+
+      navItem.appendChild(navLink);
+      navList.appendChild(navItem);
     }
   }
 
