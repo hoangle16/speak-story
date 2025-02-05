@@ -15,6 +15,13 @@ const formatUrl = (path: string | null, domain: string): string | null => {
   return new URL(path, `https://${domain}`).href;
 };
 
+const normalizeContent = (content: string): string => {
+  return content
+    .replace(/·/g, "")
+    .replace(/\s{2,}/g, " ") 
+    .trim();
+};
+
 const extractChapterNumber = (
   url: string,
   pattern: ChapterNumberPattern
@@ -132,13 +139,16 @@ const scrapeWithPuppeteer = async (
     );
 
     await page.goto(url, { waitUntil: "networkidle2" });
-    const content = await getElementTextWithPuppeteer(
+    let content = await getElementTextWithPuppeteer(
       page,
       config.selectors.content
     );
     if (content?.length <= 0) {
       throw new Error("Couldn't extract content");
     }
+
+    content = normalizeContent(content);
+
     const title = await getElementTextWithPuppeteer(
       page,
       config.selectors.title
@@ -202,10 +212,11 @@ const scrapeWithCheerio = async (
 ): Promise<StoryContent> => {
   const $ = cheerio.load(html);
 
-  const content = extractText($, config.selectors.content);
+  let content = extractText($, config.selectors.content);
   if (content.length <= 0) {
     throw new Error("Couldn't extract content");
   }
+  content = normalizeContent(content);
   const title = extractText($, config.selectors.title);
 
   let nextChapter: Chapter = { url: null, title: null };
