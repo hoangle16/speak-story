@@ -318,7 +318,7 @@ class ConfigManager {
         if (response.status === 401) {
           const success = await this.handleTokenRefresh();
           if (success) {
-            return this.handleSubmit(); 
+            return this.handleSubmit();
           }
           return;
         }
@@ -371,16 +371,13 @@ class ConfigManager {
   async handleTokenRefresh() {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-
       if (!refreshToken) {
         throw new Error("No refresh token available");
       }
 
       const response = await fetch("/api/auth/refresh-token", {
         method: "POST",
-        body: {
-          refreshToken,
-        },
+        body: JSON.stringify({ refreshToken }),
         headers: {
           "Content-Type": "application/json",
         },

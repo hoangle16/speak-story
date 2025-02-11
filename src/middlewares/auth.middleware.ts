@@ -20,7 +20,7 @@ export const authenticate = async (
   const idToken = req.headers.authorization?.split("Bearer ")[1];
 
   if (!idToken) {
-    res.status(403).json({ error: "No token provided" });
+    res.status(401).json({ error: "No token provided" });
     return;
   }
 
@@ -29,7 +29,7 @@ export const authenticate = async (
     req.user = decodedToken;
     next();
   } catch (error) {
-    res.status(403).json({ error: "Invalid token" });
+    res.status(401).json({ error: "Invalid token" });
     return;
   }
 };
