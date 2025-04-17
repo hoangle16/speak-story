@@ -184,6 +184,9 @@ class ConfigManager {
         },
       };
     } else {
+      formData.selectors.nextChapter = {};
+      formData.selectors.prevChapter = {};
+
       formData.selectors.nextChapter.cheerio = document
         .getElementById("formNextCheerio")
         .value.trim();
