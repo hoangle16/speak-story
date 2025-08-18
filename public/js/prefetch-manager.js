@@ -24,8 +24,6 @@ export class PrefetchManager {
       const formData = new FormData();
       formData.append("chapterUrl", nextChapter.url);
       formData.append("voiceShortName", document.getElementById("voice").value);
-      formData.append("rate", document.getElementById("rate").value);
-      formData.append("pitch", document.getElementById("pitch").value);
 
       this.prefetchedResponse = await fetch("/api/tts/convert", {
         method: "POST",

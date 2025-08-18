@@ -1,9 +1,14 @@
-import { PITCH, RATE, VOLUME } from "edge-tts-node";
-
 export interface TTSOptions {
   text: string;
   voiceShortName?: string;
-  rate?: number | RATE;
-  pitch?: string | PITCH;
-  volume?: number | VOLUME;
+  rate?: number;
+  pitch?: string;
+}
+
+export interface Voice {
+  ShortName: string;
+  Gender: string;
+  Locale: string;
+  FriendlyName: string;
+  Status: string;
 }

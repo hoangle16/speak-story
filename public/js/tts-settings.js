@@ -1,8 +1,7 @@
 export class TTSSettings {
-  constructor(voiceSelect, rateInput, pitchSelect) {
+  constructor(voiceSelect, rateInput) {
     this.voiceSelect = voiceSelect;
     this.rateInput = rateInput;
-    this.pitchSelect = pitchSelect;
     this.storageKey = "ttsSettings";
   }
 
@@ -10,7 +9,6 @@ export class TTSSettings {
     const settings = {
       voiceShortName: this.voiceSelect.value,
       rate: this.rateInput.value,
-      pitch: this.pitchSelect.value,
     };
     localStorage.setItem(this.storageKey, JSON.stringify(settings));
   }
@@ -27,14 +25,6 @@ export class TTSSettings {
     }
     if (settings.rate) {
       this.rateInput.value = settings.rate;
-    }
-    if (settings.pitch) {
-      const optionsExisted = Array.from(this.pitchSelect.options).some(
-        (option) => option.value === settings.pitch
-      );
-      if (optionsExisted) {
-        this.pitchSelect.value = settings.pitch;
-      }
     }
   }
 }

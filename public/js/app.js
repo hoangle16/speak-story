@@ -15,13 +15,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const resultDiv = document.getElementById("result");
   const errorDiv = document.getElementById("error");
   const voiceSelect = document.getElementById("voice");
-  const pitchSelect = document.getElementById("pitch");
   const audioPlayer = document.getElementById("audioPlayer");
   const chapterUrlInput = document.getElementById("chapterUrl");
   const rateInput = document.getElementById("rate");
   const submitButton = form.querySelector('button[type="submit"]');
   const navigationDiv = document.getElementById("chapterNavigation");
   const timerDisplay = document.getElementById("timerDisplay");
+  const rateValueSpan = document.getElementById("rateValue");
 
   const audioHandler = new AudioHandler(audioPlayer);
   const chapterNavigator = new ChapterNavigator(
@@ -33,7 +33,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const timerHandler = new TimerHandler(audioPlayer, timerDisplay);
   timerHandler.init();
 
-  const ttsSettings = new TTSSettings(voiceSelect, rateInput, pitchSelect);
+  const ttsSettings = new TTSSettings(voiceSelect, rateInput);
+
+  // Add event listener for rate input to update playback rate
+  rateInput.addEventListener('input', () => {
+    audioPlayer.playbackRate = parseFloat(rateInput.value);
+    rateValueSpan.textContent = rateInput.value;
+  });
 
   async function initializeVoices() {
     try {
@@ -46,6 +52,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         voiceSelect.append(option);
       });
       ttsSettings.loadSettings();
+      audioPlayer.playbackRate = parseFloat(rateInput.value);
+      rateValueSpan.textContent = rateInput.value; // Initialize the display value
     } catch (err) {
       console.error("Error fetching voices: ", err);
       errorDiv.textContent = "Failed to load voices";
@@ -85,6 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     prefetchManager.resetPrefetch();
     updateUrlParameter("chapterUrl", chapterUrlInput.value);
     ttsSettings.saveSettings();
+    audioPlayer.playbackRate = parseFloat(rateInput.value);
     try {
       const response = await fetch("/api/tts/convert", {
         method: "POST",
@@ -140,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   audioPlayer.addEventListener("timeupdate", () => {
     if (
       audioHandler.isAudioLoaded &&
-      audioPlayer.duration - audioPlayer.currentTime <= 45 &&
+      audioPlayer.duration - audioPlayer.currentTime <= 60 &&
       !prefetchManager.isPrefetching
     ) {
       prefetchManager.startPrefetch();
@@ -172,6 +181,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Process any prefetched chunks
         if (chunks?.length > 0) {
+          audioPlayer.playbackRate = parseFloat(rateInput.value); // Apply playback rate for prefetched audio
           for (const chunk of chunks) {
             if (chunk) {
               const playbackStarted = audioHandler.addChunk(chunk);
@@ -190,6 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               if (done) {
                 audioHandler.updateSource(true);
                 prefetchManager.resetPrefetch();
+                audioPlayer.playbackRate = parseFloat(rateInput.value); // Apply playback rate for prefetched audio
                 break;
               }
               if (value) {

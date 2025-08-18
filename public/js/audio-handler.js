@@ -22,10 +22,14 @@ export class AudioHandler {
 
     this.isCleaningUp = true;
 
+    const currentPlaybackRate = this.audioPlayer.playbackRate; // Save current playback rate
+
     this.audioPlayer.pause();
     this.audioPlayer.src = "";
     this.audioPlayer.removeAttribute("src");
     this.audioPlayer.load();
+    this.audioPlayer.playbackRate = currentPlaybackRate; // Restore playback rate
+
     this.audioChunks = [];
     this.totalBytesReceived = 0;
     this.lastUpdate = 0;
@@ -54,10 +58,12 @@ export class AudioHandler {
 
       const currentTime = this.audioPlayer.currentTime;
       const wasPlaying = !this.audioPlayer.paused;
+      const currentPlaybackRate = this.audioPlayer.playbackRate; // Store current playback rate
 
       this.audioPlayer.src = this.currentBlobUrl;
       this.audioPlayer.load(); // Force reload;
       this.audioPlayer.currentTime = currentTime;
+      this.audioPlayer.playbackRate = currentPlaybackRate; // Reapply playback rate
 
       if (wasPlaying && !this.isCleaningUp) {
         this.audioPlayer.play().catch((err) => {

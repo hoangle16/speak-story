@@ -158,9 +158,6 @@
                     class="block w-full rounded-md border-0 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
                   />
                 </div>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Hỗ trợ các nguồn: truyenyy,...
-                </p>
               </div>
 
               <!-- Controls Grid -->
@@ -171,18 +168,18 @@
                     for="rate"
                     class="block text-sm font-medium text-gray-900 dark:text-gray-100"
                   >
-                    Tốc độ đọc:
+                    Tốc độ đọc: <span id="rateValue" class="font-normal text-gray-600 dark:text-gray-400">1.3</span>
                   </label>
                   <div class="mt-2">
                     <input
-                      type="number"
+                      type="range"
                       id="rate"
                       name="rate"
-                      step="0.01"
+                      step="0.05"
                       min="0.5"
-                      max="2"
-                      value="1.3"
-                      class="block w-full rounded-md border-0 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
+                      max="5"
+                      value="1.5"
+                      class="block w-full rounded-md border-0 h-9 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
                     />
                   </div>
                 </div>
@@ -199,31 +196,8 @@
                     <select
                       id="voice"
                       name="voiceShortName"
-                      class="block w-full rounded-md border-0 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
+                      class="block w-full rounded-md border-0 px-4 h-9 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
                     ></select>
-                  </div>
-                </div>
-
-                <!-- Pitch Selection -->
-                <div>
-                  <label
-                    for="pitch"
-                    class="block text-sm font-medium text-gray-900 dark:text-gray-100"
-                  >
-                    Cao độ:
-                  </label>
-                  <div class="mt-2">
-                    <select
-                      id="pitch"
-                      name="pitch"
-                      class="block w-full rounded-md border-0 px-4 py-2 text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-blue-600 dark:focus:ring-blue-500 bg-white dark:bg-gray-700 transition-colors duration-200"
-                    >
-                      <option value="x-low">X-Low</option>
-                      <option value="low">Low</option>
-                      <option selected value="medium">Normal</option>
-                      <option value="high">High</option>
-                      <option value="x-high">X-High</option>
-                    </select>
                   </div>
                 </div>
               </div>
