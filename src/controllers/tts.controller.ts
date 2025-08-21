@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as ttsService from "../services/tts.service";
 import * as storyService from "../services/story.service";
+import { log } from "../utils/log";
 
 export const getVoices = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -10,7 +11,7 @@ export const getVoices = async (req: Request, res: Response): Promise<void> => {
     );
     res.json(vietnameseVoices);
   } catch (err) {
-    console.error("Error fetching voices", err);
+    log.error("Error fetching voices", err);
     res.status(500).json({ 
       message: "Error fetching voices",
       error: err instanceof Error ? err.message : "Unknown error"
@@ -31,7 +32,7 @@ export const convertTextToSpeech = async (
   } = req.body;
 
   try {
-    console.log(`[${new Date().toLocaleTimeString()}] Starting TTS for chapter: ${chapterUrl}`);
+    log.info(`[${new Date().toLocaleTimeString()}] Starting TTS for chapter: ${chapterUrl}`);
     
     // Get story content
     const { content, currentChapter, nextChapter, prevChapter } =
@@ -60,7 +61,7 @@ export const convertTextToSpeech = async (
     res.setHeader("X-Next-Chapter", encodedChapters.next);
     res.setHeader("X-Prev-Chapter", encodedChapters.prev);
 
-    console.log(
+    log.dev(
       `[${new Date().toLocaleTimeString()}] Content length: ${content.length} chars, Preview: ${content.substring(0, 100)}...`
     );
 
@@ -90,13 +91,13 @@ export const convertTextToSpeech = async (
 
     // handle client disconnect
     req.on('close', () => {
-      console.log(`[${new Date().toLocaleTimeString()}] Client disconnected`);
+      log.info(`[${new Date().toLocaleTimeString()}] Client disconnected`);
       streamError = true;
       cleanup();
     });
 
     req.on('aborted', () => {
-      console.log(`[${new Date().toLocaleTimeString()}] Request aborted`);
+      log.info(`[${new Date().toLocaleTimeString()}] Request aborted`);
       streamError = true;
       cleanup();
     });
@@ -105,7 +106,7 @@ export const convertTextToSpeech = async (
       if (!streamError && !res.destroyed) {
         try {
           if (!firstChunkSent) {
-            console.log(`[${new Date().toLocaleTimeString()}] Sending first chunk to client (${chunk.length} bytes)`);
+            log.dev(`[${new Date().toLocaleTimeString()}] Sending first chunk to client (${chunk.length} bytes)`);
             firstChunkSent = true;
           }
           
@@ -114,7 +115,7 @@ export const convertTextToSpeech = async (
           
           // log progress every 50KB instead of 100KB for better responsiveness
           if (bytesStreamed % (50 * 1024) < chunk.length) {
-            console.log(`[${new Date().toLocaleTimeString()}] Streamed: ${Math.round(bytesStreamed / 1024)}KB`);
+            log.dev(`[${new Date().toLocaleTimeString()}] Streamed: ${Math.round(bytesStreamed / 1024)}KB`);
           }
 
           // if buffer is full, pause stream
@@ -128,7 +129,7 @@ export const convertTextToSpeech = async (
           }
           
         } catch (writeError) {
-          console.error("Error writing to response:", writeError);
+          log.error("Error writing to response:", writeError);
           streamError = true;
           cleanup();
         }
@@ -138,12 +139,12 @@ export const convertTextToSpeech = async (
     audioStream.on("end", () => {
       if (!streamEnded && !streamError) {
         streamEnded = true;
-        console.log(`[${new Date().toLocaleTimeString()}] Streaming completed successfully. Total: ${Math.round(bytesStreamed / 1024)}KB`);
+        log.info(`[${new Date().toLocaleTimeString()}] Streaming completed successfully. Total: ${Math.round(bytesStreamed / 1024)}KB`);
         
         try {
           res.end();
         } catch (endError) {
-          console.error("Error ending response:", endError);
+          log.error("Error ending response:", endError);
         }
         cleanup();
       }
@@ -151,7 +152,7 @@ export const convertTextToSpeech = async (
 
     audioStream.on("error", (err) => {
       streamError = true;
-      console.error("Error streaming audio:", err);
+      log.error("Error streaming audio:", err);
       
       try {
         if (!res.headersSent) {
@@ -163,7 +164,7 @@ export const convertTextToSpeech = async (
           res.end();
         }
       } catch (responseError) {
-        console.error("Error handling stream error:", responseError);
+        log.error("Error handling stream error:", responseError);
       }
       
       cleanup();
@@ -172,7 +173,7 @@ export const convertTextToSpeech = async (
     // timeout fallback - increase to 8 minutes for long content
     timeout = setTimeout(() => {
       if (!streamEnded && !streamError) {
-        console.error("Stream timeout after 8 minutes");
+        log.error("Stream timeout after 8 minutes");
         streamError = true;
         
         try {
@@ -182,7 +183,7 @@ export const convertTextToSpeech = async (
             res.end();
           }
         } catch (timeoutError) {
-          console.error("Error handling timeout:", timeoutError);
+          log.error("Error handling timeout:", timeoutError);
         }
         
         cleanup();
@@ -194,7 +195,7 @@ export const convertTextToSpeech = async (
     audioStream.on('error', cleanup);
 
   } catch (err) {
-    console.error("Error converting text to speech:", err);
+    log.error("Error converting text to speech:", err);
     
     const errorMessage = err instanceof Error ? err.message : "Error converting text to speech";
     
@@ -208,7 +209,7 @@ export const convertTextToSpeech = async (
         });
       }
     } catch (responseError) {
-      console.error("Error sending error response:", responseError);
+      log.error("Error sending error response:", responseError);
     }
   }
 };
