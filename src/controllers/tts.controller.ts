@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as ttsService from "../services/tts.service";
 import * as storyService from "../services/story.service";
 import { log } from "../utils/log";
+import { Chapter } from "../interfaces/scraper.interface";
 
 export const getVoices = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -25,18 +26,37 @@ export const convertTextToSpeech = async (
 ): Promise<void> => {
   const {
     chapterUrl,
+    textContent,
     voiceShortName,
   }: {
-    chapterUrl: string;
+    chapterUrl?: string;
+    textContent?: string;
     voiceShortName?: string;
   } = req.body;
 
   try {
-    log.info(`[${new Date().toLocaleTimeString()}] Starting TTS for chapter: ${chapterUrl}`);
-    
-    // Get story content
-    const { content, currentChapter, nextChapter, prevChapter } =
-      await storyService.getStoryContent(chapterUrl);
+    let content: string;
+    let currentChapter: Chapter | null = null;
+    let nextChapter: Chapter | null = null;
+    let prevChapter: Chapter | null = null;
+
+    // Handle both link mode and text mode
+    if (textContent) {
+      // Text mode: use text directly
+      log.info(`[${new Date().toLocaleTimeString()}] Starting TTS for direct text input`);
+      content = textContent.trim();
+    } else if (chapterUrl) {
+      // Link mode: crawl content from URL
+      log.info(`[${new Date().toLocaleTimeString()}] Starting TTS for chapter: ${chapterUrl}`);
+      const storyContent = await storyService.getStoryContent(chapterUrl);
+      content = storyContent.content;
+      currentChapter = storyContent.currentChapter;
+      nextChapter = storyContent.nextChapter;
+      prevChapter = storyContent.prevChapter;
+    } else {
+      res.status(400).json({ message: "Either chapterUrl or textContent must be provided" });
+      return;
+    }
 
     if (!content || content.trim().length === 0) {
       res.status(400).json({ message: "No content found to convert to speech" });
@@ -49,17 +69,20 @@ export const convertTextToSpeech = async (
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
 
-    const encodedChapters = {
-      current: currentChapter
-        ? encodeURIComponent(JSON.stringify(currentChapter))
-        : "",
-      next: nextChapter ? encodeURIComponent(JSON.stringify(nextChapter)) : "",
-      prev: prevChapter ? encodeURIComponent(JSON.stringify(prevChapter)) : "",
-    };
+    // Only set chapter headers if we have chapter data (link mode)
+    if (currentChapter || nextChapter || prevChapter) {
+      const encodedChapters = {
+        current: currentChapter
+          ? encodeURIComponent(JSON.stringify(currentChapter))
+          : "",
+        next: nextChapter ? encodeURIComponent(JSON.stringify(nextChapter)) : "",
+        prev: prevChapter ? encodeURIComponent(JSON.stringify(prevChapter)) : "",
+      };
 
-    res.setHeader("X-Current-Chapter", encodedChapters.current);
-    res.setHeader("X-Next-Chapter", encodedChapters.next);
-    res.setHeader("X-Prev-Chapter", encodedChapters.prev);
+      res.setHeader("X-Current-Chapter", encodedChapters.current);
+      res.setHeader("X-Next-Chapter", encodedChapters.next);
+      res.setHeader("X-Prev-Chapter", encodedChapters.prev);
+    }
 
     log.dev(
       `[${new Date().toLocaleTimeString()}] Content length: ${content.length} chars, Preview: ${content.substring(0, 100)}...`
@@ -204,7 +227,8 @@ export const convertTextToSpeech = async (
         res.status(500).json({ 
           message: errorMessage,
           timestamp: new Date().toISOString(),
-          chapterUrl,
+          chapterUrl: chapterUrl || undefined,
+          textContent: textContent ? "***" : undefined,
           service: 'GTTS'
         });
       }

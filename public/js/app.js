@@ -17,11 +17,44 @@ document.addEventListener("DOMContentLoaded", async () => {
   const voiceSelect = document.getElementById("voice");
   const audioPlayer = document.getElementById("audioPlayer");
   const chapterUrlInput = document.getElementById("chapterUrl");
+  const textContentInput = document.getElementById("textContent");
+  const linkInputContainer = document.getElementById("linkInputContainer");
+  const textInputContainer = document.getElementById("textInputContainer");
+  const linkModeBtn = document.getElementById("linkModeBtn");
+  const textModeBtn = document.getElementById("textModeBtn");
   const rateInput = document.getElementById("rate");
   const submitButton = form.querySelector('button[type="submit"]');
   const navigationDiv = document.getElementById("chapterNavigation");
   const timerDisplay = document.getElementById("timerDisplay");
   const rateValueSpan = document.getElementById("rateValue");
+
+  // Mode management
+  let currentMode = "link"; // "link" or "text"
+
+  const switchMode = (mode) => {
+    currentMode = mode;
+    if (mode === "link") {
+      linkInputContainer.classList.remove("hidden");
+      textInputContainer.classList.add("hidden");
+      linkModeBtn.classList.add("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400");
+      linkModeBtn.classList.remove("border-transparent", "text-gray-600", "dark:text-gray-400");
+      textModeBtn.classList.remove("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400");
+      textModeBtn.classList.add("border-transparent", "text-gray-600", "dark:text-gray-400");
+    } else {
+      linkInputContainer.classList.add("hidden");
+      textInputContainer.classList.remove("hidden");
+      textModeBtn.classList.add("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400");
+      textModeBtn.classList.remove("border-transparent", "text-gray-600", "dark:text-gray-400");
+      linkModeBtn.classList.remove("border-blue-600", "dark:border-blue-400", "text-blue-600", "dark:text-blue-400");
+      linkModeBtn.classList.add("border-transparent", "text-gray-600", "dark:text-gray-400");
+      // Clear navigation when switching to text mode
+      navigationDiv.innerHTML = "";
+      prefetchManager.resetPrefetch();
+    }
+  };
+
+  linkModeBtn.addEventListener("click", () => switchMode("link"));
+  textModeBtn.addEventListener("click", () => switchMode("text"));
 
   const audioHandler = new AudioHandler(audioPlayer);
   const chapterNavigator = new ChapterNavigator(
@@ -84,6 +117,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     if (isSubmitting) return;
 
+    // Validate input based on mode
+    if (currentMode === "link" && !chapterUrlInput.value.trim()) {
+      errorDiv.textContent = "Vui lòng nhập link chương truyện";
+      return;
+    }
+    if (currentMode === "text" && !textContentInput.value.trim()) {
+      errorDiv.textContent = "Vui lòng nhập nội dung text";
+      return;
+    }
+
     isSubmitting = true;
     updateLoadingState(submitButton, true);
     errorDiv.textContent = "";
@@ -91,13 +134,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await audioHandler.reset();
     prefetchManager.resetPrefetch();
-    updateUrlParameter("chapterUrl", chapterUrlInput.value);
+    
+    // Only update URL parameter for link mode
+    if (currentMode === "link") {
+      updateUrlParameter("chapterUrl", chapterUrlInput.value);
+    }
+    
     ttsSettings.saveSettings();
     audioPlayer.playbackRate = parseFloat(rateInput.value);
+    
     try {
+      // Create FormData based on current mode
+      const formData = new FormData();
+      if (currentMode === "link") {
+        formData.append("chapterUrl", chapterUrlInput.value);
+      } else {
+        formData.append("textContent", textContentInput.value);
+      }
+      formData.append("voiceShortName", voiceSelect.value);
+
       const response = await fetch("/api/tts/convert", {
         method: "POST",
-        body: new FormData(form),
+        body: formData,
         signal: audioHandler.createNewController(),
       });
 
@@ -147,7 +205,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   audioPlayer.addEventListener("timeupdate", () => {
+    // Only prefetch in link mode
     if (
+      currentMode === "link" &&
       audioHandler.isAudioLoaded &&
       audioPlayer.duration - audioPlayer.currentTime <= 60 &&
       !prefetchManager.isPrefetching
@@ -156,8 +216,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Auto-play next chapter
+  // Auto-play next chapter (only in link mode)
   audioPlayer.addEventListener("ended", async () => {
+    // Only auto-play next chapter in link mode
+    if (currentMode !== "link") {
+      return;
+    }
+
     const nextChapter = chapterNavigator.getNextChapter();
     if (!isValidUrl(nextChapter?.url)) {
       alert("Không tìm thấy chương tiếp theo!");
