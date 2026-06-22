@@ -28,10 +28,12 @@ export const convertTextToSpeech = async (
     chapterUrl,
     textContent,
     voiceShortName,
+    provider,
   }: {
     chapterUrl?: string;
     textContent?: string;
     voiceShortName?: string;
+    provider?: "google" | "edge";
   } = req.body;
 
   try {
@@ -92,6 +94,7 @@ export const convertTextToSpeech = async (
     const audioStream = await ttsService.getTTSStream({
       text: content,
       voiceShortName,
+      provider,
     });
 
     let streamEnded = false;

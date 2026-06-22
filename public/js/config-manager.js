@@ -98,6 +98,7 @@ class ConfigManager {
       row.innerHTML = `
                   <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">${key}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-white">${config.domain}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">${(config.aliases || []).join(", ") || "-"}</td>
                   <td class="px-6 py-4 whitespace-nowrap">
                       <button class="text-blue-600 hover:text-blue-800 mr-3 edit-btn">Edit</button>
                       <button class="text-red-600 hover:text-red-800 delete-btn">Delete</button>
@@ -136,6 +137,9 @@ class ConfigManager {
   fillForm(config) {
     document.getElementById("formKey").value = this.currentKey;
     document.getElementById("formDomain").value = config.domain;
+    document.getElementById("formAliases").value = (
+      config.aliases || []
+    ).join(", ");
     document.getElementById("formContent").value = config.selectors.content;
     document.getElementById("formTitle").value = config.selectors.title;
     document.getElementById("formNextCheerio").value =
@@ -167,6 +171,11 @@ class ConfigManager {
     const formData = {
       key: document.getElementById("formKey").value.trim(),
       domain: document.getElementById("formDomain").value.trim(),
+      aliases: document
+        .getElementById("formAliases")
+        .value.split(",")
+        .map((alias) => alias.trim().toLowerCase())
+        .filter((alias) => alias.length > 0),
       selectors: {
         content: document.getElementById("formContent").value.trim(),
         title: document.getElementById("formTitle").value.trim(),
@@ -304,6 +313,7 @@ class ConfigManager {
       const method = this.isEditing ? "PUT" : "POST";
       const body = {
         domain: formData.domain,
+        aliases: formData.aliases,
         selectors: formData.selectors,
       };
 

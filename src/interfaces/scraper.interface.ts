@@ -22,6 +22,10 @@ export interface ChapterNumberPattern {
 
 export interface ScraperConfig {
   domain: string;
+  // Other hostnames (old domains/TLDs, rebrands, etc.) that should resolve
+  // to this same config. Populated either manually via the admin UI or
+  // automatically by the self-healing domain detection in story.service.ts.
+  aliases?: string[];
   selectors: {
     content: string;
     title: string;

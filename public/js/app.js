@@ -78,12 +78,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const response = await fetch("/api/tts/voices");
       const voices = await response.json();
+
+      const providerLabels = {
+        google: "Google Translate TTS",
+        edge: "Microsoft Edge TTS",
+      };
+
+      const groups = new Map();
       voices.forEach((voice) => {
+        const groupKey = voice.Provider || "other";
+        if (!groups.has(groupKey)) {
+          groups.set(groupKey, document.createElement("optgroup"));
+          groups.get(groupKey).label = providerLabels[groupKey] || groupKey;
+        }
         const option = document.createElement("option");
         option.value = voice.ShortName;
-        option.textContent = voice.ShortName;
-        voiceSelect.append(option);
+        option.dataset.provider = voice.Provider || "";
+        option.textContent = voice.FriendlyName || voice.ShortName;
+        groups.get(groupKey).append(option);
       });
+      groups.forEach((group) => voiceSelect.append(group));
+
       ttsSettings.loadSettings();
       audioPlayer.playbackRate = parseFloat(rateInput.value);
       rateValueSpan.textContent = rateInput.value; // Initialize the display value
@@ -152,6 +167,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         formData.append("textContent", textContentInput.value);
       }
       formData.append("voiceShortName", voiceSelect.value);
+      const selectedProvider = voiceSelect.selectedOptions[0]?.dataset.provider;
+      if (selectedProvider) {
+        formData.append("provider", selectedProvider);
+      }
 
       const response = await fetch("/api/tts/convert", {
         method: "POST",

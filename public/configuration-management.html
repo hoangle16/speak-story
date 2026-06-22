@@ -157,6 +157,11 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                 >
+                  Aliases
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                >
                   Actions
                 </th>
               </tr>
@@ -257,6 +262,28 @@
                 required
                 placeholder="e.g., example.com"
               />
+            </div>
+
+            <!-- Aliases -->
+            <div class="space-y-1">
+              <label
+                for="formAliases"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Aliases (optional)
+              </label>
+              <input
+                type="text"
+                id="formAliases"
+                name="aliases"
+                class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white text-sm"
+                placeholder="comma-separated, e.g. example.biz, old-example.net"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Other domains/TLDs this same site has used. New ones get
+                added here automatically when a redirect or rebrand is
+                detected, but you can also add them manually.
+              </p>
             </div>
 
             <!-- Basic Selectors -->
